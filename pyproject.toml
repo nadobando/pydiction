@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "pydiction"
+version = "0.1.0"
+description = ""
+authors = ["nadobando <7695172+nadobando@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{ include = "pydiction" }]
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.5.1"
+pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+python-semantic-release = "^8.0.8"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+
+[tool.bandit.assert_used]
+skips = ["tests/utils*.py", '**/test_*.py', '**/test_*.py']
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+preview = true
+exclude = """
+(
+  /(
+      .eggs         # exclude a few common directories in the
+    | .git          # root of the project
+    | .hg
+    | .mypy_cache
+    | .ruff_cache
+    | .tox
+    | .venv
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+"""
+
+[tool.isort]
+profile = "black"
+
+[tool.autopep8]
+max_line_length = 120
+
+
+[tool.semantic_release]
+match = "main"
+prerelease_token = "rc"
+prerelease = false
+version_variables = [
+    "pydiction/__init__.py:__version__",
+]
+version_toml = [
+    "pyproject.toml:tool.poetry.version",
+]
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+    "^ci:.*",
+    "^(?!feat:|fix:|perf:|refactor:).*$"
+]
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = false

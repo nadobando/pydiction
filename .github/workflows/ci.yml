@@ -1,0 +1,173 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+permissions:
+  checks: write
+  id-token: write
+  contents: write
+
+jobs:
+  pre-commit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Pre-commit checks
+        uses: pre-commit/action@v3.0.0
+        env:
+          SKIP: no-commit-to-branch
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.generate-release-id.outputs.release-id }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: cache poetry install
+        uses: actions/cache@v3
+        with:
+          path: ~/.local
+          key: poetry-1.1.12-0
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.0
+          virtualenvs-create: true
+          virtualenvs-in-project: false
+          installer-parallel: true
+
+
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}
+
+      # Install dependencies. `--no-root` means "install all dependencies but not the project
+      # itself", which is what you want to avoid caching _your_ code. The `if` statement
+      # ensures this only runs on a cache miss.
+      - run: poetry install --no-interaction --no-root
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - run: poetry install --no-interaction
+      - name: test
+        run: |
+          poetry run pytest --cov=pydiction --cov-report=xml:coverage.xml --junitxml=test-results/test-results.xml tests
+
+
+      - name: Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '**/test-results/*.xml'
+
+
+
+      - name: Coverage Report
+        uses: 5monkeys/cobertura-action@master
+        if: success() || failure()
+        with:
+          path: coverage.xml
+          minimum_coverage: 75
+          fail_below_threshold: true
+
+
+
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    concurrency: release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: /semantic-release
+          key: semantic-release
+
+
+      - name: cache poetry install
+        uses: actions/cache@v3
+        with:
+          path: ~/.local
+          key: poetry-1.1.12-0
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.0
+          virtualenvs-create: true
+          virtualenvs-in-project: false
+          installer-parallel: true
+
+      - name: Python Semantic Release
+        id: semver
+        uses: python-semantic-release/python-semantic-release@v8.0.8
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: |
+          poetry build
+
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        if: steps.semver.outputs.released == 'true'
+
+        with:
+          name: python-package-distributions
+          path: dist/
+
+    outputs:
+      released: ${{ steps.semver.outputs.released }}
+
+  publish:
+    name: Publish
+    needs:
+      - pre-commit
+      - release
+    if: needs.release.outputs.released == 'true'
+    concurrency: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish package distributions to PyPI
+
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publish package distributions to GitHub Releases
+        uses: python-semantic-release/upload-to-gh-release@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
