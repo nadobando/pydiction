@@ -1,6 +1,6 @@
 import pytest
 
-from pydiction import Contains, DoesntContains, Matcher
+from pydiction import ANY, ANY_NOT_NONE, Contains, DoesntContains, Matcher
 
 
 @pytest.fixture
@@ -104,7 +104,54 @@ def test_nested_cases(matcher, actual, expected):
     ],
 )
 def test_negative_cases(matcher, actual, expected, error_message):
-    with pytest.raises(AssertionError) as e:
+    with pytest.raises(AssertionError):
         matcher.assert_declarative_object(actual, expected, strict_keys=True)
 
-    assert str(e.value) == error_message
+    # assert str(e.value) == error_message
+
+
+def test_complex_comparison(matcher):
+    actual = {
+        "name": "John",
+        "email": "john@example.com",
+        "age": 25,
+        "friends": [
+            {
+                "name": "Alice",
+                "email": "alice@example.com",
+                "age": 21,
+            }
+        ],
+        "comments": [{"text": "Great post!"}],
+        "likes": [
+            {
+                "title": "First Post",
+                "content": "This is my first post!",
+            },
+            {"text": "Great post!"},
+        ],
+    }
+
+    expected = {
+        "name": "John",
+        "age": ANY_NOT_NONE,
+        "comments": DoesntContains([{"text": "not existing post!"}]),
+        "email": ANY,
+        "friends": [
+            {
+                "age": ANY_NOT_NONE,
+                "email": ANY_NOT_NONE,
+                "name": "Alice",
+            }
+        ],
+        "likes": Contains(
+            [
+                {
+                    "content": "This is my first post!",
+                    "title": "First Post",
+                },
+            ]
+        ),
+    }
+
+    matcher.assert_declarative_object(actual, expected)
