@@ -1,3 +1,4 @@
-from .core import ANY, ANY_NOT_NONE, Contains, DoesntContains, Matcher
+from .core import Contains, DoesntContains, Matcher
+from .operators import ANY, ANY_NOT_NONE, Expect, ExpectNot
 
-__all__ = ["ANY", "ANY_NOT_NONE", "Matcher", "Contains", "DoesntContains"]
+__all__ = ["ANY", "ANY_NOT_NONE", "Matcher", "Contains", "DoesntContains", "Expect", "ExpectNot"]

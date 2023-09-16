@@ -43,7 +43,7 @@ except AssertionError as e:
 ```
 #### Advanced
 ```python
-from pydiction import ANY_NOT_NONE, Matcher,ANY,Contains,DoesntContains
+from pydiction import ANY_NOT_NONE, Matcher, ANY, Contains, DoesntContains, Expect, ExpectNot
 
 matcher = Matcher()
 actual = {
@@ -73,9 +73,9 @@ actual = {
 
 expected = {
     "name": "John",
-    "age": ANY_NOT_NONE,
+    "age": Expect(10).__gt__,
     "comments": DoesntContains([{"text": "not existing post!"}]),
-    "email": ANY,
+    "email": ExpectNot("gmail.com").__contains__,
     "friends": [
         {
             "age": ANY_NOT_NONE,
