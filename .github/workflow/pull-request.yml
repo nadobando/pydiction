@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches-ignore: [ main, staging ]
+  pull_request:
+    types: [ opened, reopened ]
+    branches: [ main ]
+
+
+jobs:
+  check:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3.1.0
+
+      - name: Pre-commit checks
+        uses: pre-commit/action@v3.0.0
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    outputs:
+      build-id: ${{ steps.generate-build-id.outputs.build-id }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3.1.0
+
+      - name: Run tests
+        run: make test
