@@ -61,6 +61,7 @@ repos:
           - -c
           - pyproject.toml
         additional_dependencies:
+          - "bandit[toml]"
           - toml
 
   - repo: https://github.com/pre-commit/mirrors-mypy
