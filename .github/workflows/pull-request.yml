@@ -51,4 +51,17 @@ jobs:
         run: poetry install
 
       - name: test
-        run: poetry run pytest
+        run: |
+          poetry run pytest --cov-report=lcov:cov.info --junitxml=test-results/test-results.xml pydiction
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '**/test-results/*.xml'
+
+      - name: coverage report
+        uses: romeovs/lcov-reporter-action@v0.2.16
+        if: success() || failure()
+        with:
+          lcov-file: ./test-results/cov.info
