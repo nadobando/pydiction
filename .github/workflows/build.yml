@@ -17,6 +17,8 @@ jobs:
 
       - name: Pre-commit checks
         uses: pre-commit/action@v3.0.0
+        env:
+          SKIP: no-commit-to-branch
 
   test:
     name: Tests
