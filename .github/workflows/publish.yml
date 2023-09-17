@@ -1,4 +1,9 @@
 on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      -
   push:
     tags:
       - "*"
