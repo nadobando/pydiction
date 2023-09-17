@@ -11,8 +11,12 @@ python = "^3.8"
 
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.2"
 mypy = "^1.5.1"
+pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+python-semantic-release = "^8.0.8"
+
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -53,3 +57,16 @@ profile = "black"
 
 [tool.autopep8]
 max_line_length = 120
+
+
+[tool.semantic_release]
+match = "main"
+prerelease_token = "rc"
+prerelease = false
+
+version_variable = "pydiction/__init__.py:__version__"
+#commit_author = "Your Name <your.email@example.com>"
+upload_to_pypi = true
+version_toml = [
+    "pyproject.toml:tool.poetry.version",
+]

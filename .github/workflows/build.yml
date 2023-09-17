@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+
+permissions:
+  checks: write
+
+
+jobs:
+  check:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3.1.0
+
+      - name: Pre-commit checks
+        uses: pre-commit/action@v3.0.0
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    outputs:
+      build-id: ${{ steps.generate-build-id.outputs.build-id }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3.1.0
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: cache poetry install
+        uses: actions/cache@v2
+        with:
+          path: ~/.local
+          key: poetry-1.1.12-0
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.0
+          virtualenvs-create: true
+          virtualenvs-in-project: false
+          installer-parallel: true
+
+
+      - name: Install Project
+        run: poetry install
+
+      - name: test
+        run: |
+          poetry run pytest --cov=pydiction --cov-report=xml:coverage.xml --junitxml=test-results/test-results.xml tests
+
+      - name: Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '**/test-results/*.xml'
+
+      - name: Coverage Report
+        uses: 5monkeys/cobertura-action@master
+        if: success() || failure()
+        with:
+          path: coverage.xml
+          minimum_coverage: 75
+          fail_below_threshold: true
