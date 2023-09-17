@@ -6,4 +6,7 @@
 
 ### Feature
 
-* feat: declarative compare ([`5c3bd96`](https://github.com/nadobando/pydiction/commit/5c3bd9686243245f8bfb023cc9612e83232eea14))
+* feat: declarative assertion
+
+* core
+* operators ([`cbe7da5`](https://github.com/nadobando/pydiction/commit/cbe7da5d5ac764efcdd2c0d72b7a0eff3a0e5230))
