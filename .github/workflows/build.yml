@@ -1,11 +1,7 @@
-name: Tests
+name: Build
 
 on:
   push:
-    branches-ignore: [ main, staging ]
-  pull_request:
-    types: [ opened, reopened ]
-    branches: [ main ]
 
 permissions:
   checks: write
