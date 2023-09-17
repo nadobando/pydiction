@@ -55,7 +55,7 @@ jobs:
 
       - name: test
         run: |
-          poetry run pytest --cov=pydiction --cov-report=lcov:test-results/cov.info --junitxml=test-results/test-results.xml tests
+          poetry run pytest --cov=pydiction --cov-report=xml:coverage.xml --junitxml=test-results/test-results.xml tests
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v4
@@ -63,8 +63,8 @@ jobs:
         with:
           report_paths: '**/test-results/*.xml'
 
-      - name: coverage report
-        uses: romeovs/lcov-reporter-action@v0.2.16
+      - uses: 5monkeys/cobertura-action@master
         if: success() || failure()
         with:
-          lcov-file: ./test-results/cov.info
+          path: coverage.xml
+          minimum_coverage: 75
