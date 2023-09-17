@@ -1,4 +1,4 @@
-name: Semantic Release
+name: Release
 
 on:
   push:
@@ -20,5 +20,27 @@ jobs:
 
       - name: Python Semantic Release
         uses: python-semantic-release/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        if: steps.release.outputs.released == 'true'
+
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+#        with:
+#          user: ${{ secrets.PYPI_USER }}
+#          password: ${{ secrets.PYPI_PASSWORD }}
+
+      - name: Publish package distributions to GitHub Releases
+        uses: python-semantic-release/upload-to-gh-release@main
+        if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -2,6 +2,12 @@ name: Build
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 
 permissions:
   checks: write
@@ -48,18 +54,31 @@ jobs:
           installer-parallel: true
 
 
-      - name: Install Project
-        run: poetry install
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}
 
+          # Install dependencies. `--no-root` means "install all dependencies but not the project
+          # itself", which is what you want to avoid caching _your_ code. The `if` statement
+          # ensures this only runs on a cache miss.
+      - run: poetry install --no-interaction --no-root
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - run: poetry install --no-interaction
       - name: test
         run: |
           poetry run pytest --cov=pydiction --cov-report=xml:coverage.xml --junitxml=test-results/test-results.xml tests
+
 
       - name: Test Report
         uses: mikepenz/action-junit-report@v4
         if: success() || failure()
         with:
           report_paths: '**/test-results/*.xml'
+
+
 
       - name: Coverage Report
         uses: 5monkeys/cobertura-action@master
@@ -68,3 +87,8 @@ jobs:
           path: coverage.xml
           minimum_coverage: 75
           fail_below_threshold: true
+
+
+      - name: build
+        run: |
+          poetry build

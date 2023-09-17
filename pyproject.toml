@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydiction"
-version = "0.1.0"
+version = "0.0.0"
 description = ""
 authors = ["nadobando <7695172+nadobando@users.noreply.github.com>"]
 readme = "README.md"
@@ -69,4 +69,5 @@ version_variable = "pydiction/__init__.py:__version__"
 upload_to_pypi = true
 version_toml = [
     "pyproject.toml:tool.poetry.version",
+#    "pydiction/__init__.py:__version__",
 ]
